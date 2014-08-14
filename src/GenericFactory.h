@@ -28,6 +28,8 @@
 #include <type_traits>
 #include <map>
 
+#include "./LiteralStringList.h"
+
 #include "./Property.h"
 
 // These are helper structs to be able to distinquish between existing and non
@@ -112,6 +114,16 @@ class GenericFactory {
         const std::string& methodName,
         void (C::*setPtr)(Type),
         Type (C::*getPtr)() const);
+  /// This is used to automaticly register the class using this function.
+  template<typename C>
+  static constexpr const char* autoRegister(const std::string& name) {
+    return name.c_str();
+  }
+
+  template<typename C>
+  static const char* autoRegister(const char* const name, const char* const name2) {
+    return std::string(name).append(name2).c_str();
+  }
 
  private:
   /// We dont want anyone to create this.
@@ -119,6 +131,7 @@ class GenericFactory {
   /// This is the map that holds all the registered classes.
   static std::map<std::string, Base*>& reflectionMap();
 
+  /// This is the map that holds all registered properties.
   static std::map<std::string, Property<Base>*>& properyMap();
 
   template<
@@ -131,13 +144,16 @@ class GenericFactory {
   static void helpRegister(BasicCase b);
 
   template<typename C>
-  static void registerClassiWithName(const char* const name);
+  static void registerClassWithName(const char* const name);
   template<typename C>
-  static void registerClassiWithName(const std::string& name);
+  static void registerClassWithName(const std::string& name);
+  template<typename C>
+  static void registerClassWithName(const literal_str_list& name);
 };
 
 // #########################DEFINITIONS#########################################
 
+// Definitions to access the static maps.
 template<typename Base>
 std::map<std::string, Base*>& GenericFactory<Base>::reflectionMap() {
   static HelperPointerMap<std::string, Base> m_ReflMap;
@@ -149,7 +165,7 @@ std::map<std::string, Property<Base>*>& GenericFactory<Base>::properyMap() {
   static HelperPointerMap<std::string, Property<Base> > m_PropMap;
   return m_PropMap.map();
 }
-
+// Definitions to register the classes and properties.
 template<typename Base>
 template<typename C, typename Type>
 void GenericFactory<Base>::registerProperty(
@@ -163,6 +179,62 @@ void GenericFactory<Base>::registerProperty(
   properyMap()[methodName] = new TypeProperty<Base, C, Type>(setPtr, getPtr);
 }
 
+template<typename Base>
+template<typename C>
+void GenericFactory<Base>::registerClass() {
+  // perform some checks so we dont run into a mess later on.
+  static_assert(std::is_base_of<Base, C>::value,
+        "C dosn`t have base Base\n");
+  static_assert(!std::is_abstract<C>::value,
+        "C is abstract!\n");
+  static_assert(std::is_default_constructible<C>::value,
+        "C is not default constructable!\n");
+  helpRegister<C>(SpecialCase());
+}
+
+template<typename Base>
+template<
+      typename C,
+      typename OkCase<decltype(C::name)>::type,
+      typename OkCase<decltype(&C::create)>::type>
+void GenericFactory<Base>::helpRegister(SpecialCase) {
+  registerClassWithName<C>(C::name);
+}
+
+template<typename Base>
+template<typename C>
+void GenericFactory<Base>::helpRegister(BasicCase) {
+  perror("Cant find name of template argument to register,"
+      " or C::create is missing. Make sure ur class has the method.\n");
+}
+
+template<typename Base>
+template<typename C>
+void GenericFactory<Base>::registerClassWithName(
+      const literal_str_list& name) {
+  registerClassWithName<C>(convert_to_string(name));
+}
+
+template<typename Base>
+template<typename C>
+void GenericFactory<Base>::registerClassWithName(
+      const char* const name) {
+  registerClassWithName<C>(std::string(name));
+}
+
+template<typename Base>
+template<typename C>
+void GenericFactory<Base>::registerClassWithName(
+      const std::string& name) {
+  printf("REGISTERING %s.\n", name.c_str());
+  if (reflectionMap().find(name) != reflectionMap().end()) {
+    perror("There already exists a class with this name\n");
+    delete reflectionMap()[name];
+  }
+  reflectionMap()[name] = new C();
+}
+
+// Definitions to access a property. (get/set).
 template<typename Base>
 void GenericFactory<Base>::setProperty(
         const std::string& propName,
@@ -186,56 +258,12 @@ std::string GenericFactory<Base>::getProperty(
   perror("There is no propery with this name.");
   return "ERROR";
 }
-template<typename Base>
-template<typename C>
-void GenericFactory<Base>::registerClassiWithName(
-      const std::string& name) {
-  printf("REGISTERING %s.\n", C::name.c_str());
-  if (reflectionMap().find(name) != reflectionMap().end()) {
-    perror("There already exists a class with this name\n");
-    delete reflectionMap()[name];
-  }
-  reflectionMap()[name] = new C();
-}
 
-template<typename Base>
-template<typename C>
-void GenericFactory<Base>::registerClassiWithName(
-      const char* const name) {
-  registerClassiWithName<C>(std::string(name));
-}
-template<typename Base>
-template<
-      typename C,
-      typename OkCase<decltype(C::name)>::type,
-      typename OkCase<decltype(&C::create)>::type>
-void GenericFactory<Base>::helpRegister(SpecialCase) {
-  registerClassiWithName<C>(C::name);
-}
-
-template<typename Base>
-template<typename C>
-void GenericFactory<Base>::helpRegister(BasicCase) {
-  perror("Cant find name of template argument to register,"
-      " or C::create is missing. Make sure ur class has the method.\n");
-}
-
+// Definition to create a object with given name.
 template<typename Base>
 Base* GenericFactory<Base>::create(const std::string& name) {
   // Thanks to registerClass only constructable objects will be called here.
   return creationHelper(name, reflectionMap(), SpecialCase());
 }
 
-template<typename Base>
-template<typename C>
-void GenericFactory<Base>::registerClass() {
-  // perform some checks so we dont run into a mess later on.
-  static_assert(std::is_base_of<Base, C>::value,
-        "C dosn`t have base Base\n");
-  static_assert(!std::is_abstract<C>::value,
-        "C is abstract!\n");
-  static_assert(std::is_default_constructible<C>::value,
-        "C is not default constructable!\n");
-  helpRegister<C>(SpecialCase());
-}
 #endif  // GENERICFACTORY_H_

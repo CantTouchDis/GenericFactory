@@ -2,11 +2,12 @@
 //
 //
 #include <string>
+#include "LiteralStringList.h"
 
 #include "./GenericFactory.h"
 struct A {
  public:
-  static const std::string name;
+  static constexpr literal_str_list name = "A";
   virtual void printMe() {
     printf("me A\n");
   }
@@ -16,7 +17,7 @@ struct A {
 };
 struct B : public A {
  public:
-  static const std::string name;
+  static constexpr literal_str_list name = "B";
   virtual void printMe() {
     printf("me B\n");
   }
@@ -32,7 +33,7 @@ struct B : public A {
 };
 struct C {
  public:
-  static const std::string name;
+  static constexpr literal_str_list name = "C";
   virtual void printMe() {
     printf("me C\n");
   }
@@ -44,7 +45,7 @@ struct C {
 template<typename T>
 struct D : public T {
  public:
-  static const std::string name;
+  static constexpr literal_str_list name = T::name + "_ofD";
   virtual void printMe() override;
   virtual D<T>* create() const;
   virtual void test() { }
@@ -59,13 +60,13 @@ D<T>* D<T>::create() const {
 }
 template<typename T>
 void D<T>::printMe() {
-  printf("me %s\n", D<T>::name.c_str());
+  printf("me %s\n", convert_to_string(D<T>::name).c_str());
 }
-const std::string C::name = "C";
-const std::string A::name = "A";
-const std::string B::name = "B";
+constexpr literal_str_list A::name;
+constexpr literal_str_list B::name;
+constexpr literal_str_list C::name;
 template<typename T>
-const std::string D<T>::name = "D_" + T::name;
+constexpr literal_str_list D<T>::name;
 
 
 // String Helper Definitions.
@@ -95,14 +96,14 @@ std::string StringCastHelper<std::string>::fromString(
 
 int main(int, char**) {
   // GenericFactory<A>::registerClass<A>();
-  // GenericFactory<A>::registerClass<B>();
+  GenericFactory<A>::registerClass<B>();
 
+ //GenericFactory<A>::registerClass<B>();
   GenericFactory<A>::registerClass<D<B> >();
   GenericFactory<A>::registerClass<D<A> >();
-  GenericFactory<A>::registerClass<B>();
   GenericFactory<A>::registerProperty("basic", &B::basicSet, &B::basicGet);
   GenericFactory<A>::registerProperty("test", &D<B>::setTest, &D<B>::getTest);
-  A* obj = GenericFactory<A>::create("D_B");
+  A* obj = GenericFactory<A>::create("B_ofD");
   if (obj) {
     GenericFactory<A>::setProperty("basic", obj, "test");
     GenericFactory<A>::setProperty("test", obj, "test");
@@ -110,7 +111,7 @@ int main(int, char**) {
           obj).c_str());
   }
   delete obj;
-  obj = GenericFactory<A>::create("D_A");
+  obj = GenericFactory<A>::create("A_ofD");
   if (obj) {
     GenericFactory<A>::setProperty("basic", obj, "test");
     GenericFactory<A>::setProperty("test", obj, "test");
