@@ -1,6 +1,24 @@
-// Some copyright
+// The MIT License (MIT)
 //
+// Copyright (c) 2014 CantTouchDis <bauschp@informatik.uni-freiburg.de>
 //
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
 
 #ifndef GENERICFACTORY_H_
 #define GENERICFACTORY_H_
@@ -32,7 +50,7 @@ Base* creationHelper(
     return nullptr;
   return creator->create();
 }
-/// See above. this is the case if Base doesnt have create.
+/// See above. this is the case if Base doesnt have create().
 template<typename Base>
 Base* creationHelper(
       const std::string&,
@@ -41,6 +59,8 @@ Base* creationHelper(
   return nullptr;
 }
 
+/// This helper class is used to delete the pointers of the static
+/// map when the programm terminates. (Composite)
 template<typename Key, typename Value>
 class HelperPointerMap {
  public:
@@ -97,14 +117,10 @@ class GenericFactory {
   /// We dont want anyone to create this.
   GenericFactory();
   /// This is the map that holds all the registered classes.
-  static std::map<std::string, Base*>& reflectionMap() {
-    static HelperPointerMap<std::string, Base> m_ReflMap;
-    return m_ReflMap.map();
-  }
-  static std::map<std::string, Property<Base>*>& properyMap() {
-    static HelperPointerMap<std::string, Property<Base> > m_PropMap;
-    return m_PropMap.map();
-  }
+  static std::map<std::string, Base*>& reflectionMap();
+
+  static std::map<std::string, Property<Base>*>& properyMap();
+
   template<
         typename C,
         typename OkCase<decltype(C::name)>::type = 0,
@@ -119,7 +135,21 @@ class GenericFactory {
   template<typename C>
   static void registerClassiWithName(const std::string& name);
 };
+
 // #########################DEFINITIONS#########################################
+
+template<typename Base>
+std::map<std::string, Base*>& GenericFactory<Base>::reflectionMap() {
+  static HelperPointerMap<std::string, Base> m_ReflMap;
+  return m_ReflMap.map();
+}
+
+template<typename Base>
+std::map<std::string, Property<Base>*>& GenericFactory<Base>::properyMap() {
+  static HelperPointerMap<std::string, Property<Base> > m_PropMap;
+  return m_PropMap.map();
+}
+
 template<typename Base>
 template<typename C, typename Type>
 void GenericFactory<Base>::registerProperty(
