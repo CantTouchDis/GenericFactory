@@ -2,8 +2,8 @@
 //
 //
 
-#ifndef CORE_GENERICFACTORY_H_
-#define CORE_GENERICFACTORY_H_
+#ifndef GENERICFACTORY_H_
+#define GENERICFACTORY_H_
 
 #include <cstdio>
 #include <string>
@@ -208,4 +208,4 @@ void GenericFactory<Base>::registerClass() {
         "C is not default constructable!\n");
   helpRegister<C>(SpecialCase());
 }
-#endif  // CORE_GENERICFACTORY_H_
+#endif  // GENERICFACTORY_H_

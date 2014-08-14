@@ -1,7 +1,7 @@
 // Some copyright
 
-#ifndef CORE_PROPERTY_H_
-#define CORE_PROPERTY_H_
+#ifndef PROPERTY_H_
+#define PROPERTY_H_
 
 #include <cstdio>
 #include <string>
@@ -98,4 +98,4 @@ ValueType StringCastHelper<ValueType>::fromString(const std::string&) {
   static_assert(sizeof(ValueType) != sizeof(ValueType), "Specialize a"
       "StringCastHelper for your ValueType!");
 }
-#endif  // CORE_PROPERTY_H_
+#endif  // PROPERTY_H_

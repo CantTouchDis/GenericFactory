@@ -3,7 +3,7 @@
 //
 #include <string>
 
-#include "core/GenericFactory.h"
+#include "./GenericFactory.h"
 struct A {
  public:
   static const std::string name;
