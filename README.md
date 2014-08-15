@@ -38,16 +38,15 @@ Yes `Specialize a StringCastHelper for your ValueType!` is a intended error. By 
 string to it's corresponding type and back.
 Specialize the template like this:
 ```
-template<>
-std::string StringCastHelper<std::string>::toString(
-      const std::string& value) {
-  return value;
+std::string StringCastHelper<float>::toString(
+      const float& value) {
+  return std::to_string(value);
 }
 template<>
-std::string StringCastHelper<std::string>::fromString(
+float StringCastHelper<float>::fromString(
       const std::string& value) {
-  return value;
-} 
+  return std::stod(value);
+}
 ```
 
 ##### Examples:
@@ -97,6 +96,7 @@ template<>
 float StringCastHelper<float>::fromString(
       const std::string& value) {
   return std::stod(value);
+}
 
 int main(int, char**) {
   // Choice 2 register in a codeblock.
