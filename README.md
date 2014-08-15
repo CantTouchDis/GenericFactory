@@ -4,8 +4,9 @@ This is a small project that enables you to use pseudo-reflections on the object
 
 ## How to register a class
 1.  Create any hirachy of classes.
-2.  Add `static (const char* | std::string | literal_string_list) name;` to the classes. The last one is used to concat string literals while compiling. (C++11) (VS should have problems here.)
-3.  Register your classes. Choose i. XOR ii.
+2.  Add `static (const char* | std::string | literal_string_list) name;` to the classes. The last one is used to concat string literals while compiling. (C++11) (see How to add this to your project)
+3.  Make sure to add a `virtual Base* create() const` to all createable classes.
+4.  Register your classes. Choose i. XOR ii.
   1. specialize `char GenericFactory<Base>::registerAllForBase();` (return anything) with your Base class and call  `GenericFactory<Base>::registerClass<SubClass>();` for any SubClass you want to register within.
   2. call `GenericFactory<Base>::registerClass<SubClass>();` for any SubClass you want to register
 
@@ -33,8 +34,8 @@ constexpr literal_str_list Cont<T>::name;
 ```
 
 ## I`m getting a compiler error when I register a property
-Yes `Specialize aStringCastHelper for your ValueType!` is a intended error. By default it cannot convert every
-string to it's corresponding type.
+Yes `Specialize a StringCastHelper for your ValueType!` is a intended error. By default it cannot convert every
+string to it's corresponding type and back.
 Specialize the template like this:
 ```
 template<>
