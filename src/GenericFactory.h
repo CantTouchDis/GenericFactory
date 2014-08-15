@@ -282,7 +282,7 @@ template<typename C>
 void GenericFactory<Base>::registerClassWithName(
       const std::string& name) {
   // This is used to register them automaticly.
-  if (sizeof(helpInit) == helpInit)
+  if (sizeof(helpInit) != sizeof(helpInit) && helpInit)
     return;
   printf("REGISTERING %s.\n", name.c_str());
   if (reflectionMap().find(name) != reflectionMap().end()) {
