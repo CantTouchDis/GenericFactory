@@ -88,6 +88,16 @@ char GenericFactory<A>::registerAllForBase() {
   return 'y'; // Return any char but 1!!
 }
 
+template<>
+std::string StringCastHelper<float>::toString(
+      const float& value) {
+  return std::to_string(value);
+}
+template<>
+float StringCastHelper<float>::fromString(
+      const std::string& value) {
+  return std::stod(value);
+
 int main(int, char**) {
   // Choice 2 register in a codeblock.
   GenericFactory<A>::registerClass<A>();
