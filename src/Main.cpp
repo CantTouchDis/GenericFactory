@@ -94,13 +94,18 @@ std::string StringCastHelper<std::string>::fromString(
   return value;
 }
 
-int main(int, char**) {
+template<>
+char GenericFactory<A>::registerAllForBase() {
   // GenericFactory<A>::registerClass<A>();
   GenericFactory<A>::registerClass<B>();
 
- //GenericFactory<A>::registerClass<B>();
+  // GenericFactory<A>::registerClass<B>();
   GenericFactory<A>::registerClass<D<B> >();
   GenericFactory<A>::registerClass<D<A> >();
+  return 'y';
+}
+
+int main(int, char**) {
   GenericFactory<A>::registerProperty("basic", &B::basicSet, &B::basicGet);
   GenericFactory<A>::registerProperty("test", &D<B>::setTest, &D<B>::getTest);
   A* obj = GenericFactory<A>::create("B_ofD");

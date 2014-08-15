@@ -86,6 +86,11 @@ class HelperPointerMap {
 template<typename Base>
 class GenericFactory {
  public:
+  /// Static field to import everything at compiletime.
+  static const char helpInit;
+
+  /// Registeres all classes for base (has to be user defined).
+  static char registerAllForBase();
   /// Use this method to create a object of class name.
   static Base* create(const std::string& name);
 
@@ -152,6 +157,16 @@ class GenericFactory {
 };
 
 // #########################DEFINITIONS#########################################
+template<typename Base>
+const char GenericFactory<Base>::helpInit = 
+      GenericFactory<Base>::registerAllForBase();
+// Used to produce compiler errors when not defined for used base.
+template<typename Base>
+char GenericFactory<Base>::registerAllForBase() {
+  static_assert(sizeof(Base) != sizeof(Base), "Specialize a"
+      "this method to register all of your used subtypes ob Base!");
+  return 'n';
+}
 
 // Definitions to access the static maps.
 template<typename Base>
@@ -226,11 +241,16 @@ template<typename Base>
 template<typename C>
 void GenericFactory<Base>::registerClassWithName(
       const std::string& name) {
+  // This is used to register them automaticly.
+  if (sizeof(helpInit) == helpInit)
+    return;
   printf("REGISTERING %s.\n", name.c_str());
   if (reflectionMap().find(name) != reflectionMap().end()) {
     perror("There already exists a class with this name\n");
     delete reflectionMap()[name];
   }
+  // only default constructable C will land here.
+  // just construct one.
   reflectionMap()[name] = new C();
 }
 
