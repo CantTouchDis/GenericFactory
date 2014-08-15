@@ -23,12 +23,15 @@
 #ifndef GENERICFACTORY_H_
 #define GENERICFACTORY_H_
 
+#include <typeinfo>
 #include <cstdio>
 #include <string>
 #include <type_traits>
 #include <map>
 
+#ifndef DISABLELITERALSTRING
 #include "./LiteralStringList.h"
+#endif  // DISABLELITERALSTRING
 
 #include "./Property.h"
 
@@ -110,8 +113,17 @@ class GenericFactory {
   /// If C is not DefaultConstructable,
   /// And if C has a pure member. (abstract).
   template<typename C>
-  static void registerClass();
-
+  static typename std::enable_if<
+      !std::is_abstract<C>::value
+      && std::is_default_constructible<C>::value, void>::type
+        registerClass();
+  /// Registers just the properties but doesnt add the class to the
+  /// constructables.
+  template<typename C>
+  static typename std::enable_if<
+      std::is_abstract<C>::value
+      || !std::is_default_constructible<C>::value, void>::type
+    registerClass();
   /// Registers a method of C to be called by the name methodName.
   /// Use callMethod(...) to call the method on a object.
   template<typename C, typename Type>
@@ -119,16 +131,6 @@ class GenericFactory {
         const std::string& methodName,
         void (C::*setPtr)(Type),
         Type (C::*getPtr)() const);
-  /// This is used to automaticly register the class using this function.
-  template<typename C>
-  static constexpr const char* autoRegister(const std::string& name) {
-    return name.c_str();
-  }
-
-  template<typename C>
-  static const char* autoRegister(const char* const name, const char* const name2) {
-    return std::string(name).append(name2).c_str();
-  }
 
  private:
   /// We dont want anyone to create this.
@@ -141,24 +143,34 @@ class GenericFactory {
 
   template<
         typename C,
+        typename OkCase<decltype(&C::registerProperties)>::type = 0>
+  static void helpRegisterProperties(SpecialCase s);
+
+  template<typename C>
+  static void helpRegisterProperties(BasicCase b);
+  template<
+        typename C,
         typename OkCase<decltype(C::name)>::type = 0,
         typename OkCase<decltype(&C::create)>::type = 0>
-  static void helpRegister(SpecialCase s);
+  static void helpRegisterClass(SpecialCase s);
   // Dont register if u cant find the name.
   template<typename C>
-  static void helpRegister(BasicCase b);
+  static void helpRegisterClass(BasicCase b);
 
   template<typename C>
   static void registerClassWithName(const char* const name);
   template<typename C>
   static void registerClassWithName(const std::string& name);
+#ifndef DISABLELITERALSTRING
   template<typename C>
   static void registerClassWithName(const literal_str_list& name);
+#endif  // DISABLELITERALSTRING
 };
 
 // #########################DEFINITIONS#########################################
+// Definitions to auto initialize the reflection maps.
 template<typename Base>
-const char GenericFactory<Base>::helpInit = 
+const char GenericFactory<Base>::helpInit =
       GenericFactory<Base>::registerAllForBase();
 // Used to produce compiler errors when not defined for used base.
 template<typename Base>
@@ -182,6 +194,21 @@ std::map<std::string, Property<Base>*>& GenericFactory<Base>::properyMap() {
 }
 // Definitions to register the classes and properties.
 template<typename Base>
+template<
+      typename C,
+      typename OkCase<decltype(&C::registerProperties)>::type>
+void GenericFactory<Base>::helpRegisterProperties(SpecialCase) {
+  // call register Properties.
+  C::registerProperties();
+}
+
+template<typename Base>
+template<typename C>
+void GenericFactory<Base>::helpRegisterProperties(BasicCase) {
+  fprintf(stderr, "Couldn't find static void %s::registerProperties()\n",
+      convert_to_string(C::name).c_str());
+}
+template<typename Base>
 template<typename C, typename Type>
 void GenericFactory<Base>::registerProperty(
       const std::string& methodName,
@@ -196,15 +223,25 @@ void GenericFactory<Base>::registerProperty(
 
 template<typename Base>
 template<typename C>
-void GenericFactory<Base>::registerClass() {
+typename std::enable_if<
+      std::is_abstract<C>::value
+      || !std::is_default_constructible<C>::value, void>::type
+        GenericFactory<Base>::registerClass() {
+  // TODO(bauschp, Fr 15. Aug 14:16:50 CEST 2014): register all properties.
+  GenericFactory<Base>::helpRegisterProperties<C>(SpecialCase());
+}
+template<typename Base>
+template<typename C>
+typename std::enable_if<
+      !std::is_abstract<C>::value
+      && std::is_default_constructible<C>::value, void>::type
+        GenericFactory<Base>::registerClass() {
   // perform some checks so we dont run into a mess later on.
   static_assert(std::is_base_of<Base, C>::value,
         "C dosn`t have base Base\n");
-  static_assert(!std::is_abstract<C>::value,
-        "C is abstract!\n");
-  static_assert(std::is_default_constructible<C>::value,
-        "C is not default constructable!\n");
-  helpRegister<C>(SpecialCase());
+  helpRegisterClass<C>(SpecialCase());
+  // TODO(bauschp, Fr 15. Aug 14:16:50 CEST 2014): register all properties.
+  GenericFactory<Base>::helpRegisterProperties<C>(SpecialCase());
 }
 
 template<typename Base>
@@ -212,23 +249,26 @@ template<
       typename C,
       typename OkCase<decltype(C::name)>::type,
       typename OkCase<decltype(&C::create)>::type>
-void GenericFactory<Base>::helpRegister(SpecialCase) {
+void GenericFactory<Base>::helpRegisterClass(SpecialCase) {
   registerClassWithName<C>(C::name);
 }
 
 template<typename Base>
 template<typename C>
-void GenericFactory<Base>::helpRegister(BasicCase) {
-  perror("Cant find name of template argument to register,"
-      " or C::create is missing. Make sure ur class has the method.\n");
+void GenericFactory<Base>::helpRegisterClass(BasicCase) {
+  fprintf(stderr, "(%s) is missing the static field with the reflection "
+      "name or Base* create() const member. Make sure u add them!!.\n",
+      typeid(C).name());
 }
 
+#ifndef DISABLELITERALSTRING
 template<typename Base>
 template<typename C>
 void GenericFactory<Base>::registerClassWithName(
       const literal_str_list& name) {
   registerClassWithName<C>(convert_to_string(name));
 }
+#endif  // DISABLELITERALSTRING
 
 template<typename Base>
 template<typename C>

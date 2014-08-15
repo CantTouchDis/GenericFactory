@@ -2,12 +2,14 @@
 //
 //
 #include <string>
-#include "LiteralStringList.h"
+
+#include "./LiteralStringList.h"
 
 #include "./GenericFactory.h"
 struct A {
  public:
   static constexpr literal_str_list name = "A";
+  static void registerProperties();
   virtual void printMe() {
     printf("me A\n");
   }
@@ -96,18 +98,22 @@ std::string StringCastHelper<std::string>::fromString(
 
 template<>
 char GenericFactory<A>::registerAllForBase() {
-  // GenericFactory<A>::registerClass<A>();
+  GenericFactory<A>::registerClass<A>();
   GenericFactory<A>::registerClass<B>();
-
-  // GenericFactory<A>::registerClass<B>();
   GenericFactory<A>::registerClass<D<B> >();
   GenericFactory<A>::registerClass<D<A> >();
   return 'y';
 }
-
-int main(int, char**) {
+void A::registerProperties() {
+  static bool m_lock(true);
+  if (!m_lock)
+    return;
+  m_lock = false;
   GenericFactory<A>::registerProperty("basic", &B::basicSet, &B::basicGet);
   GenericFactory<A>::registerProperty("test", &D<B>::setTest, &D<B>::getTest);
+}
+
+int main(int, char**) {
   A* obj = GenericFactory<A>::create("B_ofD");
   if (obj) {
     GenericFactory<A>::setProperty("basic", obj, "test");
