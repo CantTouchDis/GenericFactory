@@ -22,15 +22,23 @@ SubClasses will be able to call properties of any class in the hirachy above the
 > NOTE: if you add this in a class all subclasses will call this as well. You might want to add a once lock (see Example).
 
 ## How to add this to your project
-Just copy the header files to your projects include path. If your compiler can't use constexp you are not able to use `literal_string_list`. Provide `DISABLELITERALSTRING` as compilerflag and you should be good to go. Sadly constructs that combine names as their name have to be specialized individualy. See below.
+Just copy the header files to your projects include path. If your compiler can't use constexp you are not able to use `literal_string_list`. Provide `DISABLELITERALSTRING` as compilerflag and you should be good to go. Sadly constructs that combine names as their name have to be specialized individualy.
 ```
+
 // class Cont.h
 template<typename T>
 class Cont {
+  // With literalStringList
   static constexpr literal_str_list name = T::name + "_Cont";
+  // Without
+  static const char* name;
 };
+// With literalStringList
 template<typename T>
 constexpr literal_str_list Cont<T>::name;
+// Without
+template<>
+const char* Cont<A>::name = "A_Cont";
 ```
 
 ## I`m getting a compiler error when I register a property
@@ -38,6 +46,7 @@ Yes `Specialize a StringCastHelper for your ValueType!` is a intended error. By 
 string to it's corresponding type and back.
 Specialize the template like this:
 ```
+template<>
 std::string StringCastHelper<float>::toString(
       const float& value) {
   return std::to_string(value);
