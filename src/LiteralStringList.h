@@ -74,7 +74,7 @@ class literal_str_list {
     copy_to_recurse(beg, end);
   }
 };
-std::string convert_to_string(const literal_str_list& lit) {
+inline std::string convert_to_string(const literal_str_list& lit) {
   std::string result(lit.size(), ' ');
   lit.copy_to(result.begin(), result.end());
   return result;

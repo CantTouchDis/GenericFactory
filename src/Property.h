@@ -27,6 +27,7 @@
 #include <cstdio>
 #include <string>
 
+namespace genfactory {
 /// A property consists of getter and setter.
 template<typename Base>
 class Property {
@@ -64,7 +65,7 @@ class TypeProperty : public Property<Base> {
   virtual void set(Base* const obj, const std::string& value) const override {
     OwnerClass* const me = dynamic_cast<OwnerClass* const>(obj);
     if (me) {
-      set(me, value);
+      setValue(me, StringCastHelper<ValueType>::fromString(value));
       return;
     }
     perror("Cant call this prop on this Object!\n");
@@ -72,19 +73,9 @@ class TypeProperty : public Property<Base> {
   virtual std::string get(const Base* const obj) const override {
     const OwnerClass* const me = dynamic_cast<const OwnerClass* const>(obj);
     if (me)
-      return get(me);
+      return StringCastHelper<ValueType>::toString(getValue(me));
     perror("Cant call this prop on this Object!\n");
     return "ERRORINPROP";
-  }
-
-  /// Returns the value of the property as string.
-  std::string get(const OwnerClass* const objPtr) const {
-    return StringCastHelper<ValueType>::toString(getValue(objPtr));
-  }
-
-  /// Sets the value from string.
-  void set(OwnerClass* const objPtr, const std::string& value) const {
-    setValue(objPtr, StringCastHelper<ValueType>::fromString(value));
   }
 
  private:
@@ -120,4 +111,5 @@ ValueType StringCastHelper<ValueType>::fromString(const std::string&) {
   static_assert(sizeof(ValueType) != sizeof(ValueType), "Specialize a"
       "StringCastHelper for your ValueType!");
 }
+}  // namespace genfactory
 #endif  // PROPERTY_H_

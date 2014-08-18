@@ -71,6 +71,7 @@ template<typename T>
 constexpr literal_str_list D<T>::name;
 
 
+namespace genfactory {
 // String Helper Definitions.
 template<>
 std::string StringCastHelper<float>::toString(
@@ -104,29 +105,31 @@ char GenericFactory<A>::registerAllForBase() {
   GenericFactory<A>::registerClass<D<A> >();
   return 'y';
 }
+}  // namespace genfactory
+
 void A::registerProperties() {
   static bool m_lock(true);
   if (!m_lock)
     return;
   m_lock = false;
-  GenericFactory<A>::registerProperty("basic", &B::basicSet, &B::basicGet);
-  GenericFactory<A>::registerProperty("test", &D<B>::setTest, &D<B>::getTest);
+  genfactory::GenericFactory<A>::registerProperty("basic", &B::basicSet, &B::basicGet);
+  genfactory::GenericFactory<A>::registerProperty("test", &D<B>::setTest, &D<B>::getTest);
 }
 
 int main(int, char**) {
-  A* obj = GenericFactory<A>::create("B_ofD");
+  A* obj = genfactory::GenericFactory<A>::create("B_ofD");
   if (obj) {
-    GenericFactory<A>::setProperty("basic", obj, "test");
-    GenericFactory<A>::setProperty("test", obj, "test");
-    printf("Result: %s\n", GenericFactory<A>::getProperty("basic",
+    genfactory::GenericFactory<A>::setProperty("basic", obj, "test");
+    genfactory::GenericFactory<A>::setProperty("test", obj, "test");
+    printf("Result: %s\n", genfactory::GenericFactory<A>::getProperty("basic",
           obj).c_str());
   }
   delete obj;
-  obj = GenericFactory<A>::create("A_ofD");
+  obj = genfactory::GenericFactory<A>::create("A_ofD");
   if (obj) {
-    GenericFactory<A>::setProperty("basic", obj, "test");
-    GenericFactory<A>::setProperty("test", obj, "test");
-    printf("Result: %s\n", GenericFactory<A>::getProperty("basic",
+    genfactory::GenericFactory<A>::setProperty("basic", obj, "test");
+    genfactory::GenericFactory<A>::setProperty("test", obj, "test");
+    printf("Result: %s\n", genfactory::GenericFactory<A>::getProperty("basic",
           obj).c_str());
   }
   delete obj;

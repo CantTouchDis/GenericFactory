@@ -35,6 +35,7 @@
 
 #include "./Property.h"
 
+namespace genfactory {
 // These are helper structs to be able to distinquish between existing and non
 // existing members. Check out:
 // stackoverflow.com/questions/13786888/check-if-member-exists-using-enable-if
@@ -157,13 +158,11 @@ class GenericFactory {
   template<typename C>
   static void helpRegisterClass(BasicCase b);
 
-  template<typename C>
-  static void registerClassWithName(const char* const name);
-  template<typename C>
-  static void registerClassWithName(const std::string& name);
+  // Helper to get the name in a uniform way.
+  static std::string nameOf(const char* const name);
+  static std::string nameOf(const std::string& name);
 #ifndef DISABLELITERALSTRING
-  template<typename C>
-  static void registerClassWithName(const literal_str_list& name);
+  static std::string nameOf(const literal_str_list& name);
 #endif  // DISABLELITERALSTRING
 };
 
@@ -200,13 +199,15 @@ template<
 void GenericFactory<Base>::helpRegisterProperties(SpecialCase) {
   // call register Properties.
   C::registerProperties();
+  printf("%zu after calling %s::registerProperties().\n",
+      properyMap().size(),
+      nameOf(C::name).c_str());
 }
 
 template<typename Base>
 template<typename C>
 void GenericFactory<Base>::helpRegisterProperties(BasicCase) {
-  fprintf(stderr, "Couldn't find static void %s::registerProperties()\n",
-      convert_to_string(C::name).c_str());
+  fprintf(stderr, "Couldn't find static void C::registerProperties()\n");
 }
 template<typename Base>
 template<typename C, typename Type>
@@ -227,7 +228,6 @@ typename std::enable_if<
       std::is_abstract<C>::value
       || !std::is_default_constructible<C>::value, void>::type
         GenericFactory<Base>::registerClass() {
-  // TODO(bauschp, Fr 15. Aug 14:16:50 CEST 2014): register all properties.
   GenericFactory<Base>::helpRegisterProperties<C>(SpecialCase());
 }
 template<typename Base>
@@ -240,7 +240,6 @@ typename std::enable_if<
   static_assert(std::is_base_of<Base, C>::value,
         "C dosn`t have base Base\n");
   helpRegisterClass<C>(SpecialCase());
-  // TODO(bauschp, Fr 15. Aug 14:16:50 CEST 2014): register all properties.
   GenericFactory<Base>::helpRegisterProperties<C>(SpecialCase());
 }
 
@@ -250,37 +249,7 @@ template<
       typename OkCase<decltype(C::name)>::type,
       typename OkCase<decltype(&C::create)>::type>
 void GenericFactory<Base>::helpRegisterClass(SpecialCase) {
-  registerClassWithName<C>(C::name);
-}
-
-template<typename Base>
-template<typename C>
-void GenericFactory<Base>::helpRegisterClass(BasicCase) {
-  fprintf(stderr, "(%s) is missing the static field with the reflection "
-      "name or Base* create() const member. Make sure u add them!!.\n",
-      typeid(C).name());
-}
-
-#ifndef DISABLELITERALSTRING
-template<typename Base>
-template<typename C>
-void GenericFactory<Base>::registerClassWithName(
-      const literal_str_list& name) {
-  registerClassWithName<C>(convert_to_string(name));
-}
-#endif  // DISABLELITERALSTRING
-
-template<typename Base>
-template<typename C>
-void GenericFactory<Base>::registerClassWithName(
-      const char* const name) {
-  registerClassWithName<C>(std::string(name));
-}
-
-template<typename Base>
-template<typename C>
-void GenericFactory<Base>::registerClassWithName(
-      const std::string& name) {
+  std::string name = nameOf(C::name);
   // This is used to register them automaticly.
   if (sizeof(helpInit) != sizeof(helpInit) && helpInit)
     return;
@@ -294,6 +263,14 @@ void GenericFactory<Base>::registerClassWithName(
   reflectionMap()[name] = new C();
 }
 
+template<typename Base>
+template<typename C>
+void GenericFactory<Base>::helpRegisterClass(BasicCase) {
+  fprintf(stderr, "(%s) is missing the static field with the reflection "
+      "name or Base* create() const member. Make sure you add them!!.\n",
+      typeid(C).name());
+}
+
 // Definitions to access a property. (get/set).
 template<typename Base>
 void GenericFactory<Base>::setProperty(
@@ -305,7 +282,7 @@ void GenericFactory<Base>::setProperty(
     prop->set(objPtr, value);
     return;
   }
-  perror("There is no propery with this name.");
+  fprintf(stderr, "There is no property named %s\n", propName.c_str());
 }
 
 template<typename Base>
@@ -315,7 +292,7 @@ std::string GenericFactory<Base>::getProperty(
   Property<Base>* prop = properyMap()[propName];
   if (prop)
     return prop->get(objPtr);
-  perror("There is no propery with this name.");
+  fprintf(stderr, "There is no property named %s\n", propName.c_str());
   return "ERROR";
 }
 
@@ -326,4 +303,20 @@ Base* GenericFactory<Base>::create(const std::string& name) {
   return creationHelper(name, reflectionMap(), SpecialCase());
 }
 
+template<typename Base>
+std::string GenericFactory<Base>::nameOf(const char* const name) {
+  return std::string(name);
+}
+
+template<typename Base>
+std::string GenericFactory<Base>::nameOf(const std::string& name) {
+  return name;
+}
+#ifndef DISABLELITERALSTRING
+template<typename Base>
+std::string GenericFactory<Base>::nameOf(const literal_str_list& name) {
+  return convert_to_string(name);
+}
+#endif  // DISABLELITERALSTRING
+}  // namespace genfactory
 #endif  // GENERICFACTORY_H_
