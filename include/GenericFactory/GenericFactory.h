@@ -20,8 +20,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#ifndef GENERICFACTORY_H_
-#define GENERICFACTORY_H_
+#ifndef GENERICFACTORY_GENERICFACTORY_H_
+#define GENERICFACTORY_GENERICFACTORY_H_
 
 #include <typeinfo>
 #include <cstdio>
@@ -319,4 +319,4 @@ std::string GenericFactory<Base>::nameOf(const literal_str_list& name) {
 }
 #endif  // DISABLELITERALSTRING
 }  // namespace genfactory
-#endif  // GENERICFACTORY_H_
+#endif  // GENERICFACTORY_GENERICFACTORY_H_

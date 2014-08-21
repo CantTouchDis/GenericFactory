@@ -1,7 +1,7 @@
 // Copyright Mikael Persson
 // http://www.daniweb.com/software-development/cpp/code/482276/c11-compile-time-string-concatenation-with-constexpr
-#ifndef LITERALSTRINGLIST_H_
-#define LITERALSTRINGLIST_H_
+#ifndef GENERICFACTORY_LITERALSTRINGLIST_H_
+#define GENERICFACTORY_LITERALSTRINGLIST_H_
 #include <cstddef>
 #include <cstring>
 // used to convert to std::string.
@@ -79,4 +79,4 @@ inline std::string convert_to_string(const literal_str_list& lit) {
   lit.copy_to(result.begin(), result.end());
   return result;
 }
-#endif  // LITERALSTRINGLIST_H_
+#endif  // GENERICFACTORY_LITERALSTRINGLIST_H_

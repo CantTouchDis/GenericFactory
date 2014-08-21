@@ -21,8 +21,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#ifndef PROPERTY_H_
-#define PROPERTY_H_
+#ifndef GENERICFACTORY_PROPERTY_H_
+#define GENERICFACTORY_PROPERTY_H_
 
 #include <cstdio>
 #include <string>
@@ -112,4 +112,4 @@ ValueType StringCastHelper<ValueType>::fromString(const std::string&) {
       "StringCastHelper for your ValueType!");
 }
 }  // namespace genfactory
-#endif  // PROPERTY_H_
+#endif  // GENERICFACTORY_PROPERTY_H_

@@ -59,9 +59,9 @@ flags = [
 # For a C project, you would set this to 'c' instead of 'c++'.
 '-x',
 'c++',
-# ELTRAZADODERAYOSINCLUDES.
+# MYPROJECTINCLUDES
 '-I',
-'src',
+'include',
 # END
 '-isystem',
 '/usr/include',
