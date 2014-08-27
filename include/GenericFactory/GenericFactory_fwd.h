@@ -1,7 +1,6 @@
 // The MIT License (MIT)
 //
 // Copyright (c) 2014 CantTouchDis <bauschp@informatik.uni-freiburg.de>
-// Copyright (c) 2014 brio1009 <christoph1009@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -21,32 +20,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include <GenericFactory/GenericFactory_impl.h>
+#ifndef GENERICFACTORY_GENERICFACTORY_FWD_H_
+#define GENERICFACTORY_GENERICFACTORY_FWD_H_
 
-#include <string>
+namespace genericfactory {
+template<typename Base>
+class GenericFactory;
+}  // namespace genericfactory
 
-#include "./TestClasses.h"
-
-int main(int, char**) {
-  A* obj = genericfactory::GenericFactory<A>::create("B_ofD");
-  if (obj) {
-    genericfactory::GenericFactory<A>::setProperty("basic", obj, "test");
-    genericfactory::GenericFactory<A>::setProperty("test", obj, "test");
-    printf("Result: %s\n",
-           genericfactory::GenericFactory<A>::getProperty("basic",
-           obj).c_str());
-  } else {
-    printf("WTF\n");
-  }
-  delete obj;
-  obj = genericfactory::GenericFactory<A>::create("A_ofD");
-  if (obj) {
-    genericfactory::GenericFactory<A>::setProperty("basic", obj, "test");
-    genericfactory::GenericFactory<A>::setProperty("test", obj, "test");
-    printf("Result: %s\n",
-           genericfactory::GenericFactory<A>::getProperty("basic",
-           obj).c_str());
-  }
-  delete obj;
-  return 0;
-}
+#endif  // GENERICFACTORY_GENERICFACTORY_FWD_H_

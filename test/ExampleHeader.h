@@ -24,14 +24,15 @@
 #ifndef EXAMPLEHEADER_H_
 #define EXAMPLEHEADER_H_
 
-#include <GenericFactory/GenericFactory.h>
+#include <GenericFactory/GenericFactory_decl.h>
+#include <GenericFactory/Property.h>
 
 #include <string>
 
 
 // Forward declate all needed classes here.
 struct A;
-namespace genfactory {
+namespace genericfactory {
 
 // Define Bases for GenericFactory.
 template<>
@@ -51,5 +52,5 @@ std::string StringCastHelper<std::string>::toString(
 template<>
 std::string StringCastHelper<std::string>::fromString(
       const std::string& value);
-}  // namespace genfactory
+}  // namespace genericfactory
 #endif  // EXAMPLEHEADER_H_

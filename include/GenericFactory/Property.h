@@ -27,7 +27,7 @@
 #include <cstdio>
 #include <string>
 
-namespace genfactory {
+namespace genericfactory {
 /// A property consists of getter and setter.
 template<typename Base>
 class Property {
@@ -111,5 +111,5 @@ ValueType StringCastHelper<ValueType>::fromString(const std::string&) {
   static_assert(sizeof(ValueType) != sizeof(ValueType), "Specialize a"
       "StringCastHelper for your ValueType!");
 }
-}  // namespace genfactory
+}  // namespace genericfactory
 #endif  // GENERICFACTORY_PROPERTY_H_

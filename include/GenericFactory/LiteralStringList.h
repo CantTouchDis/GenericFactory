@@ -6,16 +6,23 @@
 #include <cstring>
 // used to convert to std::string.
 #include <string>
+
+//NOLINT(*)
 class literal_str_list {
  private:
   const char* const text_ptr;
   unsigned int text_size;
   const literal_str_list* const head;
-  constexpr char get_char_from_head(unsigned int i, unsigned int hd_size) const {
-    return (i < hd_size ? (*head)[i] : (i < (hd_size + text_size) ? text_ptr[i - hd_size] : '\0'));
+  constexpr char get_char_from_head(
+        unsigned int i,
+        unsigned int hd_size) const {
+    return (i < hd_size ? (*head)[i]
+        : (i < (hd_size + text_size) ? text_ptr[i - hd_size] : '\0'));
   }
-  static constexpr std::size_t fnv_prime = (sizeof(std::size_t) == 8 ? 1099511628211u : 16777619u);
-  static constexpr std::size_t fnv_offset = (sizeof(std::size_t) == 8 ? 14695981039346656037u : 2166136261u);
+  static constexpr std::size_t fnv_prime =
+      (sizeof(std::size_t) == 8 ? 1099511628211u : 16777619u);
+  static constexpr std::size_t fnv_offset =
+      (sizeof(std::size_t) == 8 ? 14695981039346656037u : 2166136261u);
   constexpr std::size_t fnv_1a_hash(unsigned int i) const {
     return (i == 0 ?
         (head != nullptr ?
@@ -24,13 +31,13 @@ class literal_str_list {
         ((fnv_1a_hash(i-1) ^ text_ptr[i]) * fnv_prime));
   }
   template <typename FwdIter>
-  void copy_to_recurse(FwdIter& beg, FwdIter end) const {
+  void copy_to_recurse(FwdIter& beg, FwdIter end) const {  // NOLINT
     if (head != nullptr)
       head->copy_to_recurse(beg, end);
     for (unsigned int i = 0; (i < text_size) && (beg != end); ++i, ++beg)
       *beg = text_ptr[i];
   }
-  void copy_to_recurse(char*& beg, char* end) const {
+  void copy_to_recurse(char*& beg, char* end) const {  // NOLINT
     if (head != nullptr)
       head->copy_to_recurse(beg, end);
     std::size_t sz_to_cpy = (end - beg < text_size ? end - beg : text_size);
@@ -43,7 +50,7 @@ class literal_str_list {
 
  public:
   template <unsigned int N>
-  constexpr literal_str_list(const char(&aStr)[N],
+  constexpr literal_str_list(const char(&aStr)[N],  // NOLINT
       const literal_str_list* aHead = nullptr) :
     text_ptr(aStr), text_size(N-1), head(aHead) {
       static_assert(N >= 1, "Invalid string literal! Length is zero!");
@@ -57,7 +64,7 @@ class literal_str_list {
         (i < text_size ? text_ptr[i] : '\0'));
   }
   template <unsigned int N>
-  constexpr literal_str_list operator+(const char(&aHead)[N]) const {
+  constexpr literal_str_list operator+(const char(&aHead)[N]) const {  // NOLINT
     return literal_str_list(aHead, this);
   }
   constexpr literal_str_list operator+(const literal_str_list& aHead) const {

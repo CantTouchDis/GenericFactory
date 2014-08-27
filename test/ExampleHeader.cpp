@@ -23,6 +23,8 @@
 
 #include "./ExampleHeader.h"
 
+#include <GenericFactory/GenericFactory_impl.h>
+
 #include <string>
 
 #include "./TestClasses.h"
@@ -32,7 +34,7 @@ void B::registerProperties() {
   if (!m_lock)
     return;
   m_lock = false;
-  genfactory::GenericFactory<A>::registerProperty(
+  genericfactory::GenericFactory<A>::registerProperty(
         "basic",
         &B::basicSet,
         &B::basicGet);
@@ -42,13 +44,13 @@ void A::registerProperties() {
   if (!m_lock)
     return;
   m_lock = false;
-  genfactory::GenericFactory<A>::registerProperty(
+  genericfactory::GenericFactory<A>::registerProperty(
         "test",
         &D<B>::setTest,
         &D<B>::getTest);
 }
 
-namespace genfactory {
+namespace genericfactory {
 template<>
 char GenericFactory<A>::registerAllForBase() {
   GenericFactory<A>::registerClass<A>();
@@ -58,6 +60,7 @@ char GenericFactory<A>::registerAllForBase() {
   GenericFactory<A>::registerClass<D<D<A> > >();
   return 'y';
 }
+
 // Implement string cast helpers here.
 template<>
 std::string StringCastHelper<float>::toString(
@@ -81,5 +84,5 @@ std::string StringCastHelper<std::string>::fromString(
       const std::string& value) {
   return value;
 }
-}  // namespace genfactory
+}  // namespace genericfactory
 // String Helper Definitions.
